@@ -2,12 +2,11 @@ name: Docker Images
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
   push:
-    branches:
-    - master
     tags:
     - v[0-9]+.[0-9]+.[0-9]+
-
 
 permissions:
   packages: write
@@ -19,19 +18,13 @@ concurrency:
 jobs:
   build:
 
+    if: github.repository == 'mikf/gallery-dl'
     runs-on: ubuntu-latest
 
-    # on release commits, run only for tag event
-    if: ${{
-        github.repository == 'mikf/gallery-dl' &&
-        ( ! startsWith( github.event.head_commit.message , 'release version ' ) ||
-            startsWith( github.ref , 'refs/tags/v' ) )
-      }}
-
     steps:
-    - uses: actions/checkout@v6
+    - uses: gdl-org/clone@c54f55c32557e4755f08232bdb8a60f94a26fbdd  # v1.0.0
 
-    - uses: docker/metadata-action@v6
+    - uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf  # v6.0.0
       id: metadata
       with:
         images: |
@@ -43,24 +36,24 @@ jobs:
           type=sha,format=long,prefix=
           type=raw,priority=500,value={{date 'YYYY.MM.DD'}}
 
-    - uses: docker/setup-qemu-action@v4
+    - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a  # v4.0.0
 
-    - uses: docker/setup-buildx-action@v4
+    - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
 
     - name: Login to DockerHub
-      uses: docker/login-action@v4
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121  # v4.1.0
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v4
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121  # v4.1.0
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GHCR_TOKEN }}
 
-    - uses: docker/build-push-action@v7
+    - uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f  # v7.1.0
       with:
         context: .
         push: true
