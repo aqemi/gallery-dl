@@ -144,4 +144,26 @@ else
 fi
 
 echo
+
+# --- version -----------------------------------------------------------
+
+# Version recorded in the merged source tree.
+repo_version="$(sed -n 's/^__version__ = "\(.*\)"/\1/p' gallery_dl/version.py)"
+info "Repo version:      ${repo_version:-unknown}"
+
+if command -v gallery-dl >/dev/null 2>&1; then
+    cli_version="$(gallery-dl --version 2>&1 | head -n1)"
+    info "Installed CLI:     $cli_version  ($(command -v gallery-dl))"
+
+    if [ -n "$repo_version" ] && [ "$cli_version" != "$repo_version" ]; then
+        warn "Installed gallery-dl does not match this checkout."
+        warn "It is a separate install — your merged changes are NOT active."
+        warn "Install this tree with:  pip install -e ."
+    fi
+else
+    warn "gallery-dl not found on PATH; skipping version check."
+    warn "Run this checkout directly with:  python -m gallery_dl --version"
+fi
+
+echo
 info "Review, then push with: git push origin $BRANCH"
